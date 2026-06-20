@@ -1,0 +1,27 @@
+# ── Phase 5: Edge (CloudFront + WAF + API Gateway + Route53/ACM) ───
+# 흐름: Client → CloudFront(WAF) → API Gateway(JWT·RateLimit) → VPC Link
+#       → Istio ingress NLB(candle-k8s) → mesh
+module "edge" {
+  source = "../../modules/edge"
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  name                = local.name
+  region              = var.region
+  zone_name           = var.edge_zone_name
+  aliases             = var.edge_aliases
+  vpc_id              = module.network.vpc_id
+  vpc_link_subnet_ids = module.network.private_subnets
+
+  # Auth 서비스 배포(candle-k8s) 후 issuer 설정 → JWT 검증 활성화
+  jwt_issuer   = var.edge_jwt_issuer
+  jwt_audience = var.edge_jwt_audience
+
+  # Istio ingress 내부 NLB 생성(candle-k8s) 후 리스너 ARN 주입 → 라우트 연결
+  mesh_nlb_listener_arn = var.edge_mesh_nlb_listener_arn
+
+  tags = local.tags
+}
