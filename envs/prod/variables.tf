@@ -153,3 +153,29 @@ variable "edge_mesh_nlb_listener_arn" {
   type        = string
   default     = ""
 }
+
+variable "edge_cors_allow_origins" {
+  type    = list(string)
+  default = []
+}
+
+variable "ws_domain" {
+  description = "WebSocket 전용 도메인"
+  type        = string
+  default     = ""
+}
+
+# ── 정적 사이트 ────────────────────────────────────────────────────
+variable "admin_domain" {
+  type = string
+}
+
+variable "webapp_domain" {
+  type = string
+}
+
+variable "admin_allowed_cidrs" {
+  description = "admin 접근 허용 IP (비우면 공개)"
+  type        = list(string)
+  default     = []
+}

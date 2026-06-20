@@ -16,7 +16,10 @@ module "platform" {
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_provider     = module.eks.oidc_provider
 
-  enable_external_dns = false # Phase 5(Route53) 후 활성화
+  # WS ALB(candle-k8s)의 ws.<domain> 레코드를 external-dns가 자동 생성
+  enable_external_dns         = true
+  external_dns_zone_arns      = [module.edge.route53_zone_arn]
+  external_dns_domain_filters = [var.edge_zone_name]
 
   tags = local.tags
 }

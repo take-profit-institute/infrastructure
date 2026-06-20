@@ -37,7 +37,8 @@ infrastructure/
 │   ├── eks/            # ✅ EKS 클러스터 + 노드그룹 + EBS CSI + OIDC
 │   ├── irsa-service/   # ✅ ServiceAccount↔IAM (secret/MSK/SES)
 │   ├── platform/       # ✅ helm 부트스트랩 (LB Controller/ESO/ArgoCD) + IRSA
-│   └── edge/           # ✅ CloudFront+WAF / API Gateway / Route53 / ACM
+│   ├── edge/           # ✅ CloudFront+WAF / API Gateway(+CORS) / Route53 / ACM
+│   └── static-site/    # ✅ 정적 SPA (S3+OAC+CloudFront+ACM+WAF) — admin/webapp
 ├── envs/
 │   ├── dev/            # ✅ ~edge 까지
 │   └── prod/           # ✅ ~edge 까지
@@ -215,3 +216,9 @@ terraform apply                                                                 
 16. **Edge 2개 변수 후속 주입** — `edge_jwt_issuer`(Auth 배포 후), `edge_mesh_nlb_listener_arn`(candle-k8s NLB 후). 비어 있으면 APIGW 라우트/JWT 미적용 상태로 생성됨.
 17. **us-east-1 provider** — CloudFront ACM·WAF는 us-east-1 alias로 생성. env에 `aws.us_east_1` provider 구성 필요(이미 배선됨).
 18. **CloudFront 배포 ~15분** — 생성/변경 전파에 시간 소요.
+19. **도메인 레이아웃** — API=`api.<zone>`(edge), webapp=`app.<zone>`·admin=`admin.<zone>`(static-site). 같은 zone 공유. admin은 `admin_allowed_cidrs`로 IP 제한 권장.
+20. **정적 사이트 배포** — CI가 `terraform output {admin,webapp}_bucket` 에 업로드 후 `{...}_distribution_id` invalidation. 딥링크 파일(`/.well-known/apple-app-site-association`, `assetlinks.json`)도 올바른 content-type으로 함께 업로드.
+21. **APIGW CORS** — 앱 래핑(Capacitor/WebView) origin은 `edge_cors_allow_origins`로 명시(allow_credentials=true라 `*` 불가).
+22. **WebSocket은 API Gateway로 안 감** — HTTP API는 WS 미지원. Market 실시간(Redis Pub/Sub→BFF sub→WS)은 **전용 `ws.<domain>` → 인터넷 ALB**(candle-k8s Ingress)로 처리. Terraform은 regional ACM(`ws_acm_certificate_arn`)만 발급, ALB/레코드는 candle-k8s + external-dns. ALB idle timeout 상향 + WS heartbeat 필요.
+23. **Pub/Sub은 전용 Redis** — `redis_market_pubsub`(캐시와 분리, noeviction, 백업X). BFF 각 레플리카가 sub하므로 sticky session 불필요, failover 시 재연결은 앱 책임.
+24. **external-dns 활성화됨** — WS ALB의 `ws.<domain>` 레코드 자동 생성. Terraform이 관리하는 api/app/admin 레코드와 이름이 달라 충돌 없음(TXT 소유권).

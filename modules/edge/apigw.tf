@@ -11,7 +11,20 @@ locals {
 resource "aws_apigatewayv2_api" "this" {
   name          = "${var.name}-api"
   protocol_type = "HTTP"
-  tags          = var.tags
+
+  # 앱 래핑(WebView/Capacitor)·정적 webapp origin 허용
+  dynamic "cors_configuration" {
+    for_each = length(var.cors_allow_origins) > 0 ? [1] : []
+    content {
+      allow_origins     = var.cors_allow_origins
+      allow_methods     = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      allow_headers     = ["authorization", "content-type", "x-account-id"]
+      allow_credentials = true
+      max_age           = 3600
+    }
+  }
+
+  tags = var.tags
 }
 
 # JWT authorizer (Auth 서비스 발급 토큰 검증)

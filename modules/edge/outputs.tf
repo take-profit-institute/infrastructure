@@ -37,3 +37,8 @@ output "vpc_link_security_group_id" {
 output "waf_web_acl_arn" {
   value = aws_wafv2_web_acl.cf.arn
 }
+
+output "ws_acm_certificate_arn" {
+  description = "WebSocket ALB(candle-k8s)가 Ingress 애너테이션에 사용할 인증서 ARN"
+  value       = var.ws_domain != "" ? aws_acm_certificate_validation.ws[0].certificate_arn : null
+}

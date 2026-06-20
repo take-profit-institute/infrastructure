@@ -68,6 +68,18 @@ variable "cloudfront_price_class" {
   default = "PriceClass_200"
 }
 
+variable "cors_allow_origins" {
+  description = "APIGW CORS 허용 origin (앱 래핑 — webapp/admin 도메인, capacitor 등). 비우면 CORS 미설정"
+  type        = list(string)
+  default     = []
+}
+
+variable "ws_domain" {
+  description = "WebSocket 전용 도메인 (예: ws.candle.io). 설정 시 ALB용 regional ACM 발급. WS는 HTTP API가 아닌 인터넷 ALB(candle-k8s)로 처리"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

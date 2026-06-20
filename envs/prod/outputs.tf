@@ -32,6 +32,11 @@ output "redis_ranking_endpoint" {
   value = module.redis_ranking.primary_endpoint
 }
 
+output "redis_market_pubsub_endpoint" {
+  description = "BFF가 sub할 Market 실시간 Pub/Sub 엔드포인트"
+  value       = module.redis_market_pubsub.primary_endpoint
+}
+
 output "msk_bootstrap_brokers_iam" {
   value = module.messaging.bootstrap_brokers_sasl_iam
 }
@@ -104,4 +109,26 @@ output "edge_api_endpoint" {
 output "edge_vpc_link_security_group_id" {
   description = "메시 NLB가 인바운드 허용해야 할 SG"
   value       = module.edge.vpc_link_security_group_id
+}
+
+# ── 정적 사이트 (CI 업로드/무효화 대상) ────────────────────────────
+output "admin_bucket" {
+  value = module.admin_site.bucket_name
+}
+
+output "admin_distribution_id" {
+  value = module.admin_site.distribution_id
+}
+
+output "webapp_bucket" {
+  value = module.webapp_site.bucket_name
+}
+
+output "webapp_distribution_id" {
+  value = module.webapp_site.distribution_id
+}
+
+output "ws_acm_certificate_arn" {
+  description = "candle-k8s WS ALB Ingress 애너테이션에 사용"
+  value       = module.edge.ws_acm_certificate_arn
 }

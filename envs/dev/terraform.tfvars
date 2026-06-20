@@ -38,7 +38,20 @@ eks_node_max_size       = 4
 eks_node_desired_size   = 2
 
 # Edge — 실제 보유 도메인으로 교체할 것
+# API는 api.* 로 분리, 정적 사이트가 app.*/admin.* 소유
 edge_zone_name = "dev.candle.io"
-edge_aliases   = ["dev.candle.io", "app.dev.candle.io"]
+edge_aliases   = ["api.dev.candle.io"]
+admin_domain   = "admin.dev.candle.io"
+webapp_domain  = "app.dev.candle.io"
+
+ws_domain = "ws.dev.candle.io"
+
+edge_cors_allow_origins = [
+  "https://app.dev.candle.io",
+  "https://admin.dev.candle.io",
+  "capacitor://localhost",
+  "http://localhost",
+]
+# admin_allowed_cidrs       = ["1.2.3.4/32"]                 # 사무실 IP 등으로 제한 권장
 # edge_jwt_issuer            = "https://auth.dev.candle.io"   # Auth 배포 후
 # edge_mesh_nlb_listener_arn = "arn:aws:..."                  # candle-k8s NLB 후

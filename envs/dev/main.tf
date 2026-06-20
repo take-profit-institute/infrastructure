@@ -86,6 +86,26 @@ module "redis_price_cache" {
   tags = local.tags
 }
 
+module "redis_market_pubsub" {
+  source = "../../modules/redis"
+
+  name                       = "${local.name}-market-pubsub"
+  description                = "Market 실시간 시세 Pub/Sub (캐시 아님 — BFF가 sub → WebSocket)"
+  vpc_id                     = module.network.vpc_id
+  subnet_ids                 = module.network.database_subnets
+  allowed_cidr_blocks        = [module.network.vpc_cidr]
+  allowed_security_group_ids = [module.eks.node_security_group_id]
+
+  node_type                = var.redis_node_type
+  num_cache_clusters       = var.redis_num_nodes
+  automatic_failover       = var.redis_automatic_failover
+  multi_az                 = var.redis_multi_az
+  maxmemory_policy         = "noeviction" # pub/sub은 keyspace 미사용
+  snapshot_retention_limit = 0            # 메시지 영속 불필요
+
+  tags = local.tags
+}
+
 module "redis_ranking" {
   source = "../../modules/redis"
 
