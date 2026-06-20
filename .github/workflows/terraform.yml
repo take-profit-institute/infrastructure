@@ -1,0 +1,52 @@
+# Terraform CI — fmt/validate(전 모듈) + plan(env, PR 코멘트)
+name: terraform
+
+on:
+  pull_request:
+    paths: ["**.tf", "**.tfvars"]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  AWS_REGION: ap-northeast-2
+
+jobs:
+  fmt-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8" }
+      - name: fmt
+        run: terraform fmt -recursive -check
+      - name: validate (all roots)
+        run: |
+          for d in bootstrap global envs/dev envs/prod; do
+            echo "== $d =="
+            terraform -chdir="$d" init -backend=false -input=false >/dev/null
+            terraform -chdir="$d" validate
+          done
+
+  plan:
+    needs: fmt-validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        env: [dev, prod]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with: { terraform_version: "1.9.8" }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.CI_TERRAFORM_ROLE_ARN }} # read-only plan role
+          aws-region: ${{ env.AWS_REGION }}
+      - name: plan ${{ matrix.env }}
+        run: |
+          terraform -chdir=envs/${{ matrix.env }} init -input=false
+          terraform -chdir=envs/${{ matrix.env }} plan -input=false -no-color
+        # apply는 CI에서 자동 실행하지 않음 (수동/승인 후 권한 분리)
