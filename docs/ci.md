@@ -43,7 +43,8 @@ push main ─▶ build+test ─▶ ECR push (SHA tag)
 > S3 버킷명은 결정적(`candle-<env>-<app>`)이라 변수 불필요. CloudFront ID만 변수로.
 
 ## 전제 / 조정 포인트
-- **micro-services**: 각 서비스가 Gradle 서브프로젝트(`:auth` 등) + **Jib 플러그인** 적용. 모듈 디렉터리명=서비스명(`auth/`…) — 다르면 `ci.yml` paths-filter 수정. Spring Batch 모듈도 같은 패턴(이미지화 후 candle-k8s에 CronJob 매니페스트로 배포).
+- **micro-services**: 각 서비스가 Gradle 서브프로젝트(`:auth` 등) + **Jib 플러그인** 적용. 모듈 디렉터리명=서비스명(`auth/`…) — 다르면 `ci.yml` paths-filter 수정.
+- **Spring Batch (멀티모듈)**: `micro-services` repo의 `*-batch` 모듈(`ranking-batch` 등). CI `batch-build` job이 이미지→ECR push 후 **batch appset**(`bump-tag` `appset: batch`)을 bump. candle-k8s `services/batch-chart`(CronJob)로 배포 — 도메인 DB secret + 도메인 서비스 SA(IRSA) 재사용. JobRepository 메타테이블은 도메인 DB에 생성. CronJob은 `sidecar.istio.io/inject: false`(Job 완료 보장).
 - **webapp**: `bff/Dockerfile` 필요. 정적 빌드 산출물은 `<app>/dist`. admin 워크스페이스(`@candle/admin`)가 없으면 matrix에서 제외.
 - **OIDC role 신뢰**: `global` 변수 `github_org`/`ci_app_repos`(기본 micro-services, webapp)/`ci_infra_repo`로 sub 제한.
 - **apply는 CI 자동화 안 함** — plan만. 적용은 수동/승인(권한 분리).

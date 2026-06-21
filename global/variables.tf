@@ -35,5 +35,10 @@ variable "service_repositories" {
     "learning",
     "notification",
     "bff",
+    # Spring Batch (멀티모듈) — 도메인별 배치 이미지
+    "ranking-batch",
+    "mission-batch",
+    "pnl-batch",
+    "market-batch",
   ]
 }
