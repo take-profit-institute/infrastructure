@@ -165,7 +165,13 @@ variable "ws_domain" {
   default     = ""
 }
 
-# ── 정적 사이트 ────────────────────────────────────────────────────
+# ── Edge / 정적 사이트 ─────────────────────────────────────────────
+variable "enable_edge" {
+  description = "도메인 확보 후 true. false면 CloudFront/APIGW/ACM/Route53/static-site/external-dns 생성 안 함"
+  type        = bool
+  default     = false
+}
+
 variable "admin_domain" {
   type = string
 }

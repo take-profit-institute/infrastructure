@@ -94,41 +94,41 @@ output "external_secrets_role_arn" {
 
 # ── Edge ───────────────────────────────────────────────────────────
 output "cloudfront_domain_name" {
-  value = module.edge.cloudfront_domain_name
+  value = var.enable_edge ? module.edge[0].cloudfront_domain_name : null
 }
 
 output "route53_name_servers" {
   description = "도메인 등록기관에 등록할 NS"
-  value       = module.edge.route53_name_servers
+  value       = var.enable_edge ? module.edge[0].route53_name_servers : null
 }
 
 output "edge_api_endpoint" {
-  value = module.edge.api_endpoint
+  value = var.enable_edge ? module.edge[0].api_endpoint : null
 }
 
 output "edge_vpc_link_security_group_id" {
   description = "메시 NLB가 인바운드 허용해야 할 SG"
-  value       = module.edge.vpc_link_security_group_id
+  value       = var.enable_edge ? module.edge[0].vpc_link_security_group_id : null
 }
 
 # ── 정적 사이트 (CI 업로드/무효화 대상) ────────────────────────────
 output "admin_bucket" {
-  value = module.admin_site.bucket_name
+  value = var.enable_edge ? module.admin_site[0].bucket_name : null
 }
 
 output "admin_distribution_id" {
-  value = module.admin_site.distribution_id
+  value = var.enable_edge ? module.admin_site[0].distribution_id : null
 }
 
 output "webapp_bucket" {
-  value = module.webapp_site.bucket_name
+  value = var.enable_edge ? module.webapp_site[0].bucket_name : null
 }
 
 output "webapp_distribution_id" {
-  value = module.webapp_site.distribution_id
+  value = var.enable_edge ? module.webapp_site[0].distribution_id : null
 }
 
 output "ws_acm_certificate_arn" {
   description = "candle-k8s WS ALB Ingress 애너테이션에 사용"
-  value       = module.edge.ws_acm_certificate_arn
+  value       = var.enable_edge ? module.edge[0].ws_acm_certificate_arn : null
 }

@@ -17,9 +17,9 @@ module "platform" {
   oidc_provider     = module.eks.oidc_provider
 
   # WS ALB(candle-k8s)의 ws.<domain> 레코드를 external-dns가 자동 생성
-  enable_external_dns         = true
-  external_dns_zone_arns      = [module.edge.route53_zone_arn]
-  external_dns_domain_filters = [var.edge_zone_name]
+  enable_external_dns         = var.enable_edge
+  external_dns_zone_arns      = var.enable_edge ? [module.edge[0].route53_zone_arn] : ["*"]
+  external_dns_domain_filters = var.enable_edge ? [var.edge_zone_name] : []
 
   tags = local.tags
 }

@@ -37,8 +37,10 @@ eks_node_min_size       = 2
 eks_node_max_size       = 4
 eks_node_desired_size   = 2
 
-# Edge — 실제 보유 도메인으로 교체할 것
-# API는 api.* 로 분리, 정적 사이트가 app.*/admin.* 소유
+# Edge — 도메인 확보 후 enable_edge=true (그 전까지 edge/static/ws 미생성)
+enable_edge = false
+
+# 실제 보유 도메인으로 교체할 것. API는 api.* 분리, 정적 사이트가 app.*/admin.* 소유
 edge_zone_name = "dev.candle.io"
 edge_aliases   = ["api.dev.candle.io"]
 admin_domain   = "admin.dev.candle.io"

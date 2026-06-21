@@ -3,6 +3,7 @@
 #       → Istio ingress NLB(candle-k8s) → mesh
 module "edge" {
   source = "../../modules/edge"
+  count  = var.enable_edge ? 1 : 0 # 도메인 확보 후 enable_edge=true
 
   providers = {
     aws           = aws
@@ -35,6 +36,7 @@ module "edge" {
 # ── 정적 SPA (admin / webapp) — CloudFront + S3 ───────────────────
 module "admin_site" {
   source = "../../modules/static-site"
+  count  = var.enable_edge ? 1 : 0
 
   providers = {
     aws           = aws
@@ -43,7 +45,7 @@ module "admin_site" {
 
   name            = "${local.name}-admin"
   domain          = var.admin_domain
-  route53_zone_id = module.edge.route53_zone_id
+  route53_zone_id = module.edge[0].route53_zone_id
   allowed_cidrs   = var.admin_allowed_cidrs # 비우면 공개
 
   tags = local.tags
@@ -51,6 +53,7 @@ module "admin_site" {
 
 module "webapp_site" {
   source = "../../modules/static-site"
+  count  = var.enable_edge ? 1 : 0
 
   providers = {
     aws           = aws
@@ -59,7 +62,7 @@ module "webapp_site" {
 
   name            = "${local.name}-webapp"
   domain          = var.webapp_domain
-  route53_zone_id = module.edge.route53_zone_id
+  route53_zone_id = module.edge[0].route53_zone_id
 
   tags = local.tags
 }

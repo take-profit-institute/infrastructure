@@ -7,7 +7,7 @@ variable "region" {
 variable "state_bucket_name" {
   description = "Terraform remote state를 저장할 S3 버킷 이름 (전역 유일해야 함)"
   type        = string
-  default     = "candle-terraform-state"
+  default     = "candle-tfstate-348062907700"
 }
 
 variable "lock_table_name" {

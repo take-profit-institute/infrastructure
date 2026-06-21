@@ -12,10 +12,19 @@
 
 | # | 항목 | 상태 | 조치 |
 |---|---|---|---|
-| 1 | **AWS 자격증명** | 미설정(`NoCredentials`) | `aws configure`/SSO 로그인. apply 주체는 관리자급 권한 필요(plan용 CI 역할은 ReadOnly) |
-| 2 | **State 버킷명 전역 유일** | `candle-terraform-state` (S3 전역 네임스페이스라 선점 위험) | `bootstrap/variables.tf`의 `state_bucket_name` + `global/backend.tf` + `envs/{dev,prod}/backend.tf`를 유니크하게 교체(예: `candle-tfstate-<accountId>`). DynamoDB 락 테이블명도 동일 원칙 |
-| 3 | **실제 도메인** | `candle.io`/`dev.candle.io` placeholder | 보유 도메인으로 `envs/*/terraform.tfvars` 교체 |
-| 4 | **도메인 NS 위임** | — | Route53 zone 생성 후 `terraform output route53_name_servers`의 NS를 도메인 등록기관에 등록(안 하면 ACM DNS 검증이 무한 대기) |
+| 1 | **AWS 자격증명** | 미설정(`NoCredentials`) | 계정 `348062907700`에 자격증명 설정(아래 1.1). apply 주체는 관리자급 권한 필요(plan용 CI 역할은 ReadOnly) |
+| 2 | **State 버킷명 전역 유일** | ✅ `candle-tfstate-348062907700`로 확정 | (완료) S3는 전역 네임스페이스라 계정 ID로 유일화. DynamoDB 락 테이블(`candle-terraform-locks`)은 계정/리전 스코프라 변경 불필요 |
+| 3 | **도메인 미확보** | `candle.io` placeholder | **현재 `enable_edge=false`** → CloudFront/APIGW/ACM/Route53/static-site/ws/external-dns **미생성**으로 나머지는 그대로 apply 가능. 도메인 확보 후 tfvars 도메인 교체 + `enable_edge=true` |
+| 4 | **(edge 켤 때) NS 위임** | — | `enable_edge=true` apply 후 `terraform output route53_name_servers`의 NS를 등록기관에 등록(안 하면 ACM DNS 검증 무한 대기) |
+
+### 1.1 자격증명 — 무엇이 필요한가
+
+- **시크릿 키는 저(어시스턴트)에게 알려줄 필요 없음.** 로컬/CI에서 직접 설정한다.
+- 방법(택1): `aws configure`(액세스 키+시크릿) · `aws configure sso`(SSO) · `aws sts assume-role`.
+- **권한**: 첫 apply는 IAM(OIDC provider/role)·VPC·EKS·RDS·MSK·ElastiCache·CloudFront·Route53·S3·Secrets Manager 등을 생성 → 사실상 **AdministratorAccess**(또는 동등 범위) 필요.
+- **리전**: `ap-northeast-2`. 단 CloudFront ACM/WAF는 `us-east-1`(provider alias로 자동 처리).
+- 확인: `aws sts get-caller-identity` → Account `348062907700` 인지 체크.
+- bootstrap은 local state로 S3/DynamoDB를 만들므로 위 자격증명만 있으면 됨.
 
 ## 2. 적용 순서 (2-phase 포함)
 
