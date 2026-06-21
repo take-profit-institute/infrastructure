@@ -18,8 +18,9 @@ module "edge" {
   vpc_link_subnet_ids = module.network.private_subnets
 
   # Auth 서비스 배포(candle-k8s) 후 issuer 설정 → JWT 검증 활성화
-  jwt_issuer   = var.edge_jwt_issuer
-  jwt_audience = var.edge_jwt_audience
+  jwt_issuer        = var.edge_jwt_issuer
+  jwt_audience      = var.edge_jwt_audience
+  jwt_header_claims = var.edge_jwt_header_claims # 검증 후 백엔드로 주입할 헤더↔클레임
 
   # Istio ingress 내부 NLB 생성(candle-k8s) 후 리스너 ARN 주입 → 라우트 연결
   mesh_nlb_listener_arn = var.edge_mesh_nlb_listener_arn

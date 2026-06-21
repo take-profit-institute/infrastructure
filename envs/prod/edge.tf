@@ -17,8 +17,9 @@ module "edge" {
   vpc_id              = module.network.vpc_id
   vpc_link_subnet_ids = module.network.private_subnets
 
-  jwt_issuer   = var.edge_jwt_issuer
-  jwt_audience = var.edge_jwt_audience
+  jwt_issuer        = var.edge_jwt_issuer
+  jwt_audience      = var.edge_jwt_audience
+  jwt_header_claims = var.edge_jwt_header_claims
 
   mesh_nlb_listener_arn = var.edge_mesh_nlb_listener_arn
 

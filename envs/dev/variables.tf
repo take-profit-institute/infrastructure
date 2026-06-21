@@ -148,6 +148,12 @@ variable "edge_jwt_audience" {
   default = []
 }
 
+variable "edge_jwt_header_claims" {
+  description = "JWT 검증 후 백엔드 주입 헤더↔클레임 (헤더명=클레임)"
+  type        = map(string)
+  default     = { "X-Account-Id" = "sub" }
+}
+
 variable "edge_mesh_nlb_listener_arn" {
   description = "candle-k8s가 만드는 Istio ingress NLB 리스너 ARN (준비 후 주입)"
   type        = string

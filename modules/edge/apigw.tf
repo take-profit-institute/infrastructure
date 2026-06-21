@@ -75,6 +75,13 @@ resource "aws_apigatewayv2_integration" "mesh" {
   integration_uri    = var.mesh_nlb_listener_arn
   connection_type    = "VPC_LINK"
   connection_id      = aws_apigatewayv2_vpc_link.this.id
+
+  # JWT 검증 후 클레임을 헤더로 주입(overwrite=클라이언트 위조 헤더 덮어씀).
+  # JWT authorizer 적용 라우트(/{proxy+})에서만 채워지고, public /auth는 비게 됨.
+  request_parameters = local.jwt_enabled ? {
+    for h, claim in var.jwt_header_claims :
+    "overwrite:header.${h}" => "$context.authorizer.claims.${claim}"
+  } : {}
 }
 
 # /auth/* — 로그인 등 public (JWT 미적용)

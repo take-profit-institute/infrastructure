@@ -39,6 +39,14 @@ variable "jwt_audience" {
   default = []
 }
 
+variable "jwt_header_claims" {
+  description = "JWT 검증 후 백엔드로 주입할 헤더 ↔ 클레임 매핑(헤더명 = 클레임 경로). 클라이언트가 보낸 동일 헤더는 overwrite로 차단(스푸핑 방지). 예: X-Account-Id ← 토큰의 account 클레임"
+  type        = map(string)
+  default = {
+    "X-Account-Id" = "sub" # 실제 Auth 토큰의 account 클레임명으로 교체(예: accountId)
+  }
+}
+
 # ── 메시 백엔드 (candle-k8s가 만드는 내부 NLB) ─────────────────────
 variable "mesh_nlb_listener_arn" {
   description = "Istio ingress 내부 NLB의 리스너 ARN. 설정 시 APIGW 라우트 연결"
