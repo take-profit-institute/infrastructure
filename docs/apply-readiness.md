@@ -76,8 +76,15 @@ terraform apply         # 전체 (postgres-init / platform(helm) / edge / static
 | `<MSK_IAM_BOOTSTRAP>` | 1 | `terraform output msk_bootstrap_brokers_iam` (kafka-connect.yaml) |
 | `<DEBEZIUM_ROLE_ARN>` | 1 | `terraform output irsa_debezium_role_arn` (kafka-connect.yaml) |
 
-> 계정/리전이 결정적이므로 `sed` 스크립트나 kustomize replacement으로 자동화 권장.
-> ws ACM은 LB Controller가 host 매칭으로 자동탐색(치환 불필요).
+자동 치환 스크립트(권장):
+```bash
+# dev apply 후 (MSK/Debezium 값은 terraform output에서 자동으로 읽음)
+cd candle-k8s && scripts/render-placeholders.sh dev
+git add -A && git commit -m "render dev placeholders"   # ArgoCD가 봐야 하므로 commit
+```
+- `<ACCOUNT_ID>`(=348062907700)/`<ECR>`는 결정적이라 항상 치환.
+- `<MSK_IAM_BOOTSTRAP>`/`<DEBEZIUM_ROLE_ARN>`는 `../infrastructure/envs/dev`의 `terraform output`에서 읽음(없으면 경고 후 placeholder 유지 → apply 후 재실행).
+- README/docs는 건드리지 않음(platform/만 대상). ws ACM은 LB Controller가 host 매칭으로 자동탐색(치환 불필요).
 
 ## 4. 인프라 → GitOps 핸드오프
 
