@@ -6,7 +6,7 @@ variable "region" {
 variable "github_org" {
   description = "GitHub org/유저명"
   type        = string
-  default     = "candle"
+  default     = "take-profit-institute"
 }
 
 variable "ci_app_repos" {
@@ -24,21 +24,18 @@ variable "ci_infra_repo" {
 variable "service_repositories" {
   description = "마이크로서비스 + 빌드 산출물별 ECR repo"
   type        = list(string)
+  # micro-services Gradle 모듈명과 1:1 (org.profit / *-service), + bff(webapp) + 단일 batch
   default = [
-    "auth",
-    "user",
-    "trading", # account + trading 통합
-    "portfolio",
-    "market",
-    "ranking",
-    "mission",
-    "learning",
-    "notification",
+    "auth-service",
+    "user-service",
+    "market-service",
+    "trading-service", # account + trading 통합
+    "portfolio-service",
+    "ranking-service",
+    "mission-service",
+    "learning-service",
+    "notification-service",
     "bff",
-    # Spring Batch (멀티모듈) — 도메인별 배치 이미지
-    "ranking-batch",
-    "mission-batch",
-    "pnl-batch",
-    "market-batch",
+    "batch", # 단일 Spring Batch 모듈 (Job은 --spring.batch.job.name으로 선택)
   ]
 }

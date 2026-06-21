@@ -21,13 +21,14 @@ module "eks" {
 # DB 이름 → k8s ServiceAccount 이름 (users DB는 user 서비스)
 locals {
   service_accounts = {
-    auth      = "auth"
-    users     = "user"
-    trading   = "trading"
-    portfolio = "portfolio"
-    ranking   = "ranking"
-    mission   = "mission"
-    learning  = "learning"
+    auth      = "auth-service"
+    users     = "user-service"
+    trading   = "trading-service"
+    portfolio = "portfolio-service"
+    ranking   = "ranking-service"
+    mission   = "mission-service"
+    learning  = "learning-service"
+    batch     = "batch" # Spring Batch CronJob SA (JobRepository + MSK)
   }
 }
 
@@ -55,7 +56,7 @@ module "irsa_market" {
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_provider     = module.eks.oidc_provider
   namespace         = "candle"
-  service_account   = "market"
+  service_account   = "market-service"
   secret_arns       = [module.timescale.secret_arn]
   msk_cluster_arn   = module.messaging.cluster_arn
 
@@ -70,7 +71,7 @@ module "irsa_notification" {
   oidc_provider_arn = module.eks.oidc_provider_arn
   oidc_provider     = module.eks.oidc_provider
   namespace         = "candle"
-  service_account   = "notification"
+  service_account   = "notification-service"
   msk_cluster_arn   = module.messaging.cluster_arn
 
   additional_policy_json = jsonencode({

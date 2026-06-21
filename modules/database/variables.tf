@@ -38,6 +38,7 @@ variable "service_databases" {
     "ranking",
     "mission",
     "learning",
+    "batch", # Spring Batch JobRepository (batch는 도메인 DB 직접접근 X, gRPC 호출)
   ]
 }
 
