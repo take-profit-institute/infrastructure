@@ -96,6 +96,12 @@ variable "jwt_hmac_secret" {
   sensitive   = true
 }
 
+variable "jwt_issuer" {
+  description = "JWT issuer. chatting-service가 핸드셰이크에서 iss를 검증한다(auth-service의 AUTH_JWT_ISSUER와 동일해야 함)."
+  type        = string
+  default     = "candle-auth"
+}
+
 # ── MSK ────────────────────────────────────────────────────────────
 variable "msk_broker_instance_type" {
   type    = string

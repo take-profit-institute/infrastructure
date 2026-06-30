@@ -37,6 +37,7 @@ resource "aws_secretsmanager_secret_version" "chat" {
   secret_string = jsonencode({
     REDIS_URL                 = "rediss://${module.redis_chat_pubsub.primary_endpoint}:${module.redis_chat_pubsub.port}"
     AUTH_JWT_HMAC_SECRET      = var.jwt_hmac_secret
+    AUTH_JWT_ISSUER           = var.jwt_issuer
     CHAT_CORS_ALLOWED_ORIGINS = "https://${var.webapp_domain},https://${var.ws_domain}"
   })
 }
