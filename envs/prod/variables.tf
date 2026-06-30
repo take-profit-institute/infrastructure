@@ -90,6 +90,12 @@ variable "redis_ranking_snapshot_retention" {
   default = 7
 }
 
+variable "jwt_hmac_secret" {
+  description = "auth-service가 JWT(HS256) 서명에 쓰는 HMAC 시크릿. chatting-service가 WS 핸드셰이크 검증에 동일 값을 사용한다(반드시 auth와 일치). tfvars에 두지 말고 TF_VAR_jwt_hmac_secret 등으로 주입."
+  type        = string
+  sensitive   = true
+}
+
 # ── MSK ────────────────────────────────────────────────────────────
 variable "msk_broker_instance_type" {
   type    = string

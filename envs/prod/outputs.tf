@@ -37,6 +37,11 @@ output "redis_market_pubsub_endpoint" {
   value       = module.redis_market_pubsub.primary_endpoint
 }
 
+output "redis_chat_pubsub_endpoint" {
+  description = "chatting-service가 PUB/SUB·방 카운터에 쓰는 채팅 전용 Pub/Sub 엔드포인트"
+  value       = module.redis_chat_pubsub.primary_endpoint
+}
+
 output "msk_bootstrap_brokers_iam" {
   value = module.messaging.bootstrap_brokers_sasl_iam
 }
