@@ -31,3 +31,12 @@ variable "debezium_password" {
   default   = ""
   sensitive = true
 }
+
+# outbox 테이블별 Debezium publication 사전 생성 + SELECT 부여.
+# ⚠️ outbox 테이블은 각 서비스 Flyway 마이그레이션이 만든다(앱 배포 시점) → 앱 마이그레이션 완료 후
+#    2차 pass 로 켠다: terraform apply -var='create_debezium_publications=true'
+#    (candle-k8s 커넥터는 publication.autocreate.mode=disabled 로 이 publication 을 참조한다.)
+variable "create_debezium_publications" {
+  type    = bool
+  default = false
+}
