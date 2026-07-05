@@ -13,7 +13,7 @@
 | # | 항목 | 상태 | 조치 |
 |---|---|---|---|
 | 1 | **AWS 자격증명** | 미설정(`NoCredentials`) | 계정 `348062907700`에 자격증명 설정(아래 1.1). apply 주체는 관리자급 권한 필요(plan용 CI 역할은 ReadOnly) |
-| 2 | **State 버킷명 전역 유일** | ✅ `candle-tfstate-348062907700`로 확정 | (완료) S3는 전역 네임스페이스라 계정 ID로 유일화. DynamoDB 락 테이블(`candle-terraform-locks`)은 계정/리전 스코프라 변경 불필요 |
+| 2 | **State 버킷명 전역 유일** | ✅ 자동화 스크립트가 `candle-tfstate-<account-id>` 사용 | S3는 전역 네임스페이스라 계정 ID 기반으로 유일화. 다른 이름이 필요하면 `STATE_BUCKET=...` |
 | 3 | **도메인 미확보** | `candle.io` placeholder | **현재 `enable_edge=false`** → CloudFront/APIGW/ACM/Route53/static-site/ws/external-dns **미생성**으로 나머지는 그대로 apply 가능. 도메인 확보 후 tfvars 도메인 교체 + `enable_edge=true` |
 | 4 | **(edge 켤 때) NS 위임** | — | `enable_edge=true` apply 후 `terraform output route53_name_servers`의 NS를 등록기관에 등록(안 하면 ACM DNS 검증 무한 대기) |
 
@@ -27,6 +27,34 @@
 - bootstrap은 local state로 S3/DynamoDB를 만들므로 위 자격증명만 있으면 됨.
 
 ## 2. 적용 순서 (2-phase 포함)
+
+자동화 스크립트(권장):
+
+```bash
+# 도메인/edge 없이 dev 인프라 + ArgoCD root까지
+export TF_VAR_jwt_hmac_secret="$(openssl rand -base64 48)"
+scripts/apply-env.sh dev
+
+# 도메인 구매/NS 위임까지 할 환경. dev는 dev.<보유도메인>, prod는 <보유도메인> 권장.
+export TF_VAR_jwt_hmac_secret="기존 auth/chat과 동일한 값"
+ENABLE_EDGE=true DOMAIN=dev.example.com scripts/apply-env.sh dev
+ENABLE_EDGE=true DOMAIN=example.com scripts/apply-env.sh prod
+```
+
+이 스크립트가 수행하는 것:
+- AWS account ID 확인 후 `candle-tfstate-<account-id>` state bucket을 bootstrap/backend에 자동 주입
+- `bootstrap` → `global` → `envs/<env>` base phase → full phase 순서로 Terraform apply
+- EKS kubeconfig 갱신
+- Terraform output 기반으로 candle-k8s placeholder 치환
+- `projects/candle.yaml`, `bootstrap/<env>.yaml` 적용
+
+주의:
+- ArgoCD는 Git의 `main`을 읽으므로, placeholder 치환 결과와 이미지 태그 변경은 commit/push되어 있어야 클러스터가 동일한 값을 본다.
+- `ENABLE_EDGE=true` 최초 apply 후 `terraform output route53_name_servers`를 도메인 등록기관에 NS로 위임해야 ACM/도메인 검증이 완료된다.
+- 앱 이미지가 `bootstrap` 태그로 남아 있으면 ECR에 해당 태그 이미지가 있어야 한다. CI가 SHA 태그로 ApplicationSet을 갱신하는 방식이면 그 커밋이 먼저 필요하다.
+- 다른 state bucket 이름을 써야 하면 `STATE_BUCKET=...`으로 override한다.
+
+수동 순서:
 
 ```bash
 # 0) state 인프라 — 1회, local state

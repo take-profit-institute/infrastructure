@@ -35,8 +35,12 @@ variable "service_repositories" {
     "mission-service",
     "learning-service",
     "notification-service",
+    "stock-service",
+    "wishlist-service",
+    "news-service",
     "chatting-service", # 종목 실시간 채팅 WS 게이트웨이 (WebFlux, 메시지 비영속)
     "bff",
     "batch", # 단일 Spring Batch 모듈 (Job은 --spring.batch.job.name으로 선택)
+    "debezium-connect",
   ]
 }
