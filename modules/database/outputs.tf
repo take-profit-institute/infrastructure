@@ -26,15 +26,19 @@ output "security_group_id" {
   value = aws_security_group.rds.id
 }
 
-# postgres-init 모듈로 넘길 서비스별 자격증명 (이름/비번 분리 — for_each 키 제약)
-output "service_database_names" {
+output "application_database_name" {
+  value = var.application_database_name
+}
+
+# postgres-init 모듈로 넘길 서비스별 schema/role 자격증명 (이름/비번 분리 — for_each 키 제약)
+output "service_schema_names" {
   description = "비민감 — postgres-init의 for_each 키로 사용"
-  value       = var.service_databases
+  value       = var.service_schemas
 }
 
 output "service_passwords" {
-  description = "{ db_name = password } (민감)"
-  value       = { for db in var.service_databases : db => random_password.service[db].result }
+  description = "{ schema_name = password } (민감)"
+  value       = { for schema in var.service_schemas : schema => random_password.service[schema].result }
   sensitive   = true
 }
 

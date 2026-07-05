@@ -20,7 +20,7 @@ output "rds_endpoint" {
 }
 
 output "rds_service_secret_arns" {
-  description = "서비스별 DB 자격증명 secret ARN (IRSA 정책에서 참조)"
+  description = "서비스별 schema 접속 자격증명 secret ARN (IRSA 정책에서 참조)"
   value       = module.database.service_secret_arns
 }
 

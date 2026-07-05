@@ -9,7 +9,7 @@ resource "random_password" "master" {
 }
 
 resource "random_password" "service" {
-  for_each = toset(var.service_databases)
+  for_each = toset(var.service_schemas)
   length   = 24
   special  = false
 }
@@ -52,13 +52,13 @@ resource "aws_secretsmanager_secret_version" "master" {
     engine   = "postgres"
     host     = module.rds.db_instance_address
     port     = 5432
-    dbname   = "candle"
+    dbname   = var.application_database_name
   })
 }
 
-# ── 서비스별 자격증명 (DB 1개 = role 1개 = secret 1개) ─────────────
+# ── 서비스별 자격증명 (schema 1개 = role 1개 = secret 1개) ─────────
 resource "aws_secretsmanager_secret" "service" {
-  for_each                = toset(var.service_databases)
+  for_each                = toset(var.service_schemas)
   name                    = "candle/${var.environment}/rds/${each.key}"
   description             = "DB credentials for ${each.key} service"
   recovery_window_in_days = var.secret_recovery_window_days
@@ -66,7 +66,7 @@ resource "aws_secretsmanager_secret" "service" {
 }
 
 resource "aws_secretsmanager_secret_version" "service" {
-  for_each  = toset(var.service_databases)
+  for_each  = toset(var.service_schemas)
   secret_id = aws_secretsmanager_secret.service[each.key].id
   secret_string = jsonencode(merge({
     username                   = each.key
@@ -74,13 +74,14 @@ resource "aws_secretsmanager_secret_version" "service" {
     engine                     = "postgres"
     host                       = module.rds.db_instance_address
     port                       = 5432
-    dbname                     = each.key
-    SPRING_DATASOURCE_URL      = "jdbc:postgresql://${module.rds.db_instance_address}:5432/${each.key}"
+    dbname                     = var.application_database_name
+    schema                     = each.key
+    SPRING_DATASOURCE_URL      = "jdbc:postgresql://${module.rds.db_instance_address}:5432/${var.application_database_name}?currentSchema=${each.key},public"
     SPRING_DATASOURCE_USERNAME = each.key
     SPRING_DATASOURCE_PASSWORD = random_password.service[each.key].result
     },
     contains(keys(local.service_db_env_prefixes), each.key) ? {
-      "${local.service_db_env_prefixes[each.key]}_DB_URL"      = "jdbc:postgresql://${module.rds.db_instance_address}:5432/${each.key}"
+      "${local.service_db_env_prefixes[each.key]}_DB_URL"      = "jdbc:postgresql://${module.rds.db_instance_address}:5432/${var.application_database_name}?currentSchema=${each.key},public"
       "${local.service_db_env_prefixes[each.key]}_DB_USERNAME" = each.key
       "${local.service_db_env_prefixes[each.key]}_DB_PASSWORD" = random_password.service[each.key].result
     } : {}
@@ -103,5 +104,6 @@ resource "aws_secretsmanager_secret_version" "debezium" {
     engine   = "postgres"
     host     = module.rds.db_instance_address
     port     = 5432
+    dbname   = var.application_database_name
   })
 }

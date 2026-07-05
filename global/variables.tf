@@ -12,7 +12,7 @@ variable "github_org" {
 variable "ci_app_repos" {
   description = "ECR push/정적배포를 하는 앱 repo (백엔드 micro-services, webapp)"
   type        = list(string)
-  default     = ["micro-services", "webapp"]
+  default     = ["candle", "micro-services", "webapp"]
 }
 
 variable "ci_infra_repo" {

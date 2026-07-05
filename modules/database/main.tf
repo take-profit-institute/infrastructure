@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------
-# Database 모듈 — 단일 PostgreSQL(RDS) 인스턴스
-# 서비스별 DB 분리(option a)는 postgres-init 모듈에서 생성한다.
+# Database 모듈 — 단일 PostgreSQL(RDS) 인스턴스 + 단일 application database
+# 서비스별 격리는 postgres-init 모듈이 application database 안 schema로 생성한다.
 # 이 모듈은 인스턴스 + 보안그룹 + Secrets Manager(자격증명)만 책임진다.
 # ---------------------------------------------------------------------------
 
@@ -54,8 +54,8 @@ module "rds" {
   max_allocated_storage = var.max_allocated_storage
   storage_encrypted     = true
 
-  # 초기 관리용 DB(placeholder). 실제 서비스 DB는 postgres-init가 생성.
-  db_name  = "candle"
+  # 서비스들이 공유하는 단일 DB. 서비스별 격리는 schema/search_path로 처리한다.
+  db_name  = var.application_database_name
   username = var.master_username
   port     = 5432
 

@@ -21,7 +21,7 @@ module "network" {
   tags = local.tags
 }
 
-# ── Phase 2: Database (단일 RDS + 서비스별 DB 분리) ────────────────
+# ── Phase 2: Database (단일 RDS + 단일 DB + 서비스별 schema 분리) ─
 module "database" {
   source = "../../modules/database"
 
@@ -43,7 +43,7 @@ module "database" {
   tags = local.tags
 }
 
-# 서비스별 DB + role 생성 (postgresql provider가 RDS에 도달 가능할 때만 apply)
+# 서비스별 schema + role 생성 (postgresql provider가 RDS에 도달 가능할 때만 apply)
 module "postgres_init" {
   source = "../../modules/postgres-init"
 
@@ -51,8 +51,9 @@ module "postgres_init" {
     postgresql = postgresql
   }
 
-  database_names = module.database.service_database_names
-  passwords      = module.database.service_passwords
+  database_name = module.database.application_database_name
+  schema_names  = module.database.service_schema_names
+  passwords     = module.database.service_passwords
 
   debezium_username = module.database.debezium_username
   debezium_password = module.database.debezium_password

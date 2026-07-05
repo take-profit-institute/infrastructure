@@ -27,8 +27,14 @@ variable "allowed_security_group_ids" {
   default     = []
 }
 
-variable "service_databases" {
-  description = "단일 인스턴스 안에 분리 생성할 서비스별 DB 목록 (DB당 전용 role 1개)"
+variable "application_database_name" {
+  description = "서비스들이 공유하는 단일 application database. 서비스 격리는 schema로 한다."
+  type        = string
+  default     = "candle"
+}
+
+variable "service_schemas" {
+  description = "단일 application database 안에 생성할 서비스별 schema 목록 (schema당 전용 role 1개)"
   type        = list(string)
   default = [
     "auth",
@@ -38,7 +44,7 @@ variable "service_databases" {
     "ranking",
     "mission",
     "learning",
-    "batch", # Spring Batch JobRepository (batch는 도메인 DB 직접접근 X, gRPC 호출)
+    "batch", # Spring Batch JobRepository
     "stock",
     "wishlist",
     "news",

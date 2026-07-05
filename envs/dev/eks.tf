@@ -17,7 +17,7 @@ module "eks" {
   tags = local.tags
 }
 
-# DB 이름 → k8s ServiceAccount 이름 (users DB는 user 서비스)
+# Schema/secret 이름 → k8s ServiceAccount 이름 (users schema는 user 서비스)
 locals {
   service_accounts = {
     auth      = "auth-service"
@@ -33,13 +33,13 @@ locals {
     news      = "news-service"
   }
 
-  irsa_app_database_names = setsubtract(toset(module.database.service_database_names), toset(["notification"]))
+  irsa_app_schema_names = setsubtract(toset(module.database.service_schema_names), toset(["notification"]))
 }
 
 # 서비스별 IRSA: 본인 DB secret 읽기 + MSK IAM(produce/consume)
 module "irsa_app" {
   source   = "../../modules/irsa-service"
-  for_each = local.irsa_app_database_names
+  for_each = local.irsa_app_schema_names
 
   name              = "${local.name}-${each.key}"
   oidc_provider_arn = module.eks.oidc_provider_arn

@@ -9,7 +9,7 @@ Candle(학습형 모의투자 플랫폼)의 AWS 인프라를 Terraform으로 관
 | IaC 도구 | Terraform (`terraform-aws-modules` 커뮤니티 모듈 + 얇은 wrapper) |
 | 환경 | `dev`, `prod` (차이는 주로 `terraform.tfvars`로 흡수) |
 | 리전 | `ap-northeast-2` (서울) |
-| RDS | **단일 PostgreSQL 인스턴스 + 서비스별 DB 분리** (7개 DB) — dev·prod 동일 |
+| RDS | **단일 PostgreSQL 인스턴스 + 단일 DB(`candle`) + 서비스별 schema 분리** — dev·prod 동일 |
 | Market DB | **TimescaleDB** (별도 호스팅 — RDS는 미지원) |
 | 시크릿 | **AWS Secrets Manager** (DB 비번 등 TF state에 평문 미저장, IRSA로 주입) |
 | State | S3 + DynamoDB 락 (`bootstrap` 스택이 생성) |
@@ -29,7 +29,7 @@ infrastructure/
 ├── modules/            # 재사용 모듈 (환경 무관)
 │   ├── network/        # ✅ VPC/subnet/NAT
 │   ├── database/       # ✅ 단일 RDS + logical replication(CDC) + Secrets Manager
-│   ├── postgres-init/  # ✅ 서비스별 DB + role + Debezium replication role
+│   ├── postgres-init/  # ✅ 서비스별 schema + role + Debezium replication role
 │   ├── timescale/      # ✅ Market TimescaleDB 자격증명(secret). DB본체는 candle-k8s
 │   ├── redis/          # ✅ ElastiCache Redis (용도별 1개)
 │   ├── messaging/      # ✅ MSK (Kafka, IAM+TLS)
@@ -70,7 +70,7 @@ terraform apply
 - [x] **Phase 0** — Bootstrap (state)
 - [x] **Phase 1** — Network (VPC)
 - [x] **Phase 2** — Data & Messaging
-  - [x] 단일 RDS + 서비스별 DB 7개 + Secrets Manager + CDC용 logical replication
+  - [x] 단일 RDS + 단일 DB + 서비스별 schema + Secrets Manager + CDC용 logical replication
   - [x] ElastiCache Redis ×2 (시세캐시 TTL / Ranking Sorted Set)
   - [x] Market TimescaleDB 자격증명 (DB 본체는 EKS StatefulSet → candle-k8s)
   - [x] MSK (Kafka, IAM+TLS) — Debezium CDC outbox
