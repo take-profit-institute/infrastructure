@@ -24,11 +24,19 @@ resource "aws_secretsmanager_secret" "market" {
 resource "aws_secretsmanager_secret_version" "market" {
   secret_id = aws_secretsmanager_secret.market.id
   secret_string = jsonencode({
-    username = var.db_username
-    password = random_password.market.result
-    engine   = "timescaledb"
-    host     = var.service_host
-    port     = var.port
-    dbname   = var.db_name
+    username                   = var.db_username
+    password                   = random_password.market.result
+    engine                     = "timescaledb"
+    host                       = var.service_host
+    port                       = var.port
+    dbname                     = var.db_name
+    SPRING_DATASOURCE_URL      = "jdbc:postgresql://${var.service_host}:${var.port}/${var.db_name}"
+    SPRING_DATASOURCE_USERNAME = var.db_username
+    SPRING_DATASOURCE_PASSWORD = random_password.market.result
+    MARKET_DB_URL              = "jdbc:postgresql://${var.service_host}:${var.port}/${var.db_name}"
+    MARKET_DB_USERNAME         = var.db_username
+    MARKET_DB_PASSWORD         = random_password.market.result
+    POSTGRES_USER              = var.db_username
+    POSTGRES_PASSWORD          = random_password.market.result
   })
 }

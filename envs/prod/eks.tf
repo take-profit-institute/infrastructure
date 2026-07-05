@@ -29,13 +29,18 @@ locals {
     mission   = "mission-service"
     learning  = "learning-service"
     batch     = "batch" # Spring Batch CronJob SA (JobRepository + MSK)
+    stock     = "stock-service"
+    wishlist  = "wishlist-service"
+    news      = "news-service"
   }
+
+  irsa_app_database_names = setsubtract(toset(module.database.service_database_names), toset(["notification"]))
 }
 
 # 서비스별 IRSA: 본인 DB secret 읽기 + MSK IAM(produce/consume)
 module "irsa_app" {
   source   = "../../modules/irsa-service"
-  for_each = toset(module.database.service_database_names)
+  for_each = local.irsa_app_database_names
 
   name              = "${local.name}-${each.key}"
   oidc_provider_arn = module.eks.oidc_provider_arn
@@ -72,6 +77,7 @@ module "irsa_notification" {
   oidc_provider     = module.eks.oidc_provider
   namespace         = "candle"
   service_account   = "notification-service"
+  secret_arns       = [module.database.service_secret_arns["notification"]]
   msk_cluster_arn   = module.messaging.cluster_arn
 
   additional_policy_json = jsonencode({

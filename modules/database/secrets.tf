@@ -19,6 +19,23 @@ resource "random_password" "debezium" {
   special = false
 }
 
+locals {
+  service_db_env_prefixes = {
+    auth         = "AUTH"
+    users        = "USER"
+    trading      = "TRADING"
+    portfolio    = "PORTFOLIO"
+    ranking      = "RANKING"
+    mission      = "MISSION"
+    learning     = "LEARNING"
+    batch        = "BATCH"
+    stock        = "STOCK"
+    wishlist     = "WISHLIST"
+    news         = "NEWS"
+    notification = "NOTIFICATION"
+  }
+}
+
 # ── 마스터 자격증명 ────────────────────────────────────────────────
 resource "aws_secretsmanager_secret" "master" {
   name                    = "candle/${var.environment}/rds/master"
@@ -51,14 +68,23 @@ resource "aws_secretsmanager_secret" "service" {
 resource "aws_secretsmanager_secret_version" "service" {
   for_each  = toset(var.service_databases)
   secret_id = aws_secretsmanager_secret.service[each.key].id
-  secret_string = jsonencode({
-    username = each.key
-    password = random_password.service[each.key].result
-    engine   = "postgres"
-    host     = module.rds.db_instance_address
-    port     = 5432
-    dbname   = each.key
-  })
+  secret_string = jsonencode(merge({
+    username                   = each.key
+    password                   = random_password.service[each.key].result
+    engine                     = "postgres"
+    host                       = module.rds.db_instance_address
+    port                       = 5432
+    dbname                     = each.key
+    SPRING_DATASOURCE_URL      = "jdbc:postgresql://${module.rds.db_instance_address}:5432/${each.key}"
+    SPRING_DATASOURCE_USERNAME = each.key
+    SPRING_DATASOURCE_PASSWORD = random_password.service[each.key].result
+    },
+    contains(keys(local.service_db_env_prefixes), each.key) ? {
+      "${local.service_db_env_prefixes[each.key]}_DB_URL"      = "jdbc:postgresql://${module.rds.db_instance_address}:5432/${each.key}"
+      "${local.service_db_env_prefixes[each.key]}_DB_USERNAME" = each.key
+      "${local.service_db_env_prefixes[each.key]}_DB_PASSWORD" = random_password.service[each.key].result
+    } : {}
+  ))
 }
 
 # ── Debezium CDC 커넥터 자격증명 ───────────────────────────────────
