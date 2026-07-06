@@ -53,6 +53,12 @@ edge_cors_allow_origins = [
   "https://admin.candle.io.kr",
   "capacitor://localhost",
 ]
-# admin_allowed_cidrs       = ["1.2.3.4/32"]            # 사무실 IP 등으로 제한 권장
-# edge_jwt_issuer            = "https://auth.candle.io"  # Auth 배포 후
+# JWT authorizer: 검증 후 클레임을 헤더로 주입(overwrite=스푸핑 차단). dev 게이트웨이와 동등.
+edge_jwt_audience = ["candle-api"]
+edge_jwt_header_claims = {
+  "X-Account-Id"   = "sub"
+  "X-Account-Role" = "role"
+}
+# admin_allowed_cidrs       = ["1.2.3.4/32"]               # 사무실 IP 등으로 제한 권장
+# edge_jwt_issuer   = "https://auth.candle.io.kr"          # auth JWKS 공개(OIDC discovery) 후 활성
 # edge_mesh_nlb_listener_arn = "arn:aws:..."            # candle-k8s NLB 후
