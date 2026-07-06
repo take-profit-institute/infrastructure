@@ -6,7 +6,7 @@ module "redis_chat_pubsub" {
   source = "../../modules/redis"
 
   name                       = "${local.name}-chat-pubsub"
-  description                = "종목 채팅 Pub/Sub 팬아웃 + 방 인원 카운터 (메시지 비영속)"
+  description                = "Stock chat pub-sub fanout and room counters (ephemeral)"
   vpc_id                     = module.network.vpc_id
   subnet_ids                 = module.network.database_subnets
   allowed_cidr_blocks        = [module.network.vpc_cidr]

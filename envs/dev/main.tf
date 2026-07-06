@@ -71,7 +71,7 @@ module "redis_price_cache" {
   source = "../../modules/redis"
 
   name                       = "${local.name}-price-cache"
-  description                = "Market 시세 캐시 (TTL 1s)"
+  description                = "Market quote cache (TTL 1s)"
   vpc_id                     = module.network.vpc_id
   subnet_ids                 = module.network.database_subnets
   allowed_cidr_blocks        = [module.network.vpc_cidr]
@@ -91,7 +91,7 @@ module "redis_market_pubsub" {
   source = "../../modules/redis"
 
   name                       = "${local.name}-market-pubsub"
-  description                = "Market 실시간 시세 Pub/Sub (캐시 아님 — BFF가 sub → WebSocket)"
+  description                = "Market realtime quote pub-sub (BFF subscribes to WebSocket)"
   vpc_id                     = module.network.vpc_id
   subnet_ids                 = module.network.database_subnets
   allowed_cidr_blocks        = [module.network.vpc_cidr]
@@ -111,7 +111,7 @@ module "redis_ranking" {
   source = "../../modules/redis"
 
   name                       = "${local.name}-ranking"
-  description                = "Ranking 리더보드 (Sorted Set)"
+  description                = "Ranking leaderboard (Sorted Set)"
   vpc_id                     = module.network.vpc_id
   subnet_ids                 = module.network.database_subnets
   allowed_cidr_blocks        = [module.network.vpc_cidr]

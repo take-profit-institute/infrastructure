@@ -70,8 +70,9 @@ variable "max_allocated_storage" {
 }
 
 variable "engine_version" {
-  type    = string
-  default = "16.4"
+  type = string
+  # ap-northeast-2에서 사용 가능한 최신 16.x (16.4 등 구 마이너는 AWS가 폐기함).
+  default = "16.9"
 }
 
 variable "multi_az" {
