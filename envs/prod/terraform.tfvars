@@ -38,19 +38,19 @@ eks_node_max_size       = 8
 eks_node_desired_size   = 3
 
 # Edge — 도메인 확보 후 enable_edge=true (그 전까지 edge/static/ws 미생성)
-enable_edge = false
+enable_edge = true
 
-# 실제 보유 도메인으로 교체할 것. API는 api.* 분리, 정적 사이트가 app.*/admin.* 소유
-edge_zone_name = "candle.io"
-edge_aliases   = ["api.candle.io"]
-admin_domain   = "admin.candle.io"
-webapp_domain  = "app.candle.io"
+# 보유 도메인 candle.io.kr. API는 api.* 분리, 정적 사이트가 app.*/admin.* 소유
+edge_zone_name = "candle.io.kr"
+edge_aliases   = ["api.candle.io.kr"]
+admin_domain   = "admin.candle.io.kr"
+webapp_domain  = "app.candle.io.kr"
 
-ws_domain = "ws.candle.io"
+ws_domain = "ws.candle.io.kr"
 
 edge_cors_allow_origins = [
-  "https://app.candle.io",
-  "https://admin.candle.io",
+  "https://app.candle.io.kr",
+  "https://admin.candle.io.kr",
   "capacitor://localhost",
 ]
 # admin_allowed_cidrs       = ["1.2.3.4/32"]            # 사무실 IP 등으로 제한 권장

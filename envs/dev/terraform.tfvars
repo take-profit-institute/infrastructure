@@ -41,16 +41,16 @@ eks_node_desired_size   = 2
 enable_edge = false
 
 # 실제 보유 도메인으로 교체할 것. API는 api.* 분리, 정적 사이트가 app.*/admin.* 소유
-edge_zone_name = "dev.candle.io"
-edge_aliases   = ["api.dev.candle.io"]
-admin_domain   = "admin.dev.candle.io"
-webapp_domain  = "app.dev.candle.io"
+edge_zone_name = "dev.candle.io.kr"
+edge_aliases   = ["api.dev.candle.io.kr"]
+admin_domain   = "admin.dev.candle.io.kr"
+webapp_domain  = "app.dev.candle.io.kr"
 
-ws_domain = "ws.dev.candle.io"
+ws_domain = "ws.dev.candle.io.kr"
 
 edge_cors_allow_origins = [
-  "https://app.dev.candle.io",
-  "https://admin.dev.candle.io",
+  "https://app.dev.candle.io.kr",
+  "https://admin.dev.candle.io.kr",
   "capacitor://localhost",
   "http://localhost",
 ]
