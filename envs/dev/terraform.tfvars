@@ -34,11 +34,11 @@ msk_broker_volume_size   = 50
 kubernetes_version      = "1.30"
 eks_node_instance_types = ["t3.large"]
 eks_node_min_size       = 2
-eks_node_max_size       = 4
-eks_node_desired_size   = 2
+eks_node_max_size       = 6
+eks_node_desired_size   = 4
 
 # Edge — 도메인 확보 후 enable_edge=true (그 전까지 edge/static/ws 미생성)
-enable_edge = false
+enable_edge = true
 
 # 실제 보유 도메인으로 교체할 것. API는 api.* 분리, 정적 사이트가 app.*/admin.* 소유
 edge_zone_name = "dev.candle.io.kr"
@@ -48,10 +48,10 @@ webapp_domain  = "app.dev.candle.io.kr"
 
 ws_domain = "ws.dev.candle.io.kr"
 
+# API Gateway CORS는 http(s) origin만 허용 — capacitor:// 는 거부되므로 앱 CORS에서 처리(여기 X).
 edge_cors_allow_origins = [
   "https://app.dev.candle.io.kr",
   "https://admin.dev.candle.io.kr",
-  "capacitor://localhost",
   "http://localhost",
 ]
 # JWT authorizer: 검증 후 클레임을 헤더로 주입(overwrite=스푸핑 차단). dev 게이트웨이와 동등.
@@ -62,4 +62,5 @@ edge_jwt_header_claims = {
 }
 # admin_allowed_cidrs = ["1.2.3.4/32"]                          # 사무실 IP 등으로 제한 권장
 # edge_jwt_issuer     = "https://auth.dev.candle.io.kr"         # auth JWKS 공개(OIDC discovery) 후 활성
-# edge_mesh_nlb_listener_arn = "arn:aws:..."                  # candle-k8s NLB 후
+# candle-mesh-ingress NLB(istio ingressgateway, port 80) 리스너 — API GW VPC link 통합 대상.
+edge_mesh_nlb_listener_arn = "arn:aws:elasticloadbalancing:ap-northeast-2:633597729239:listener/net/candle-mesh-ingress/4240d1d77d479ca9/23a58389af34b987"

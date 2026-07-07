@@ -33,6 +33,28 @@ module "eks" {
     }
   }
 
+  # EKS 컨트롤플레인(API 서버) → 노드의 admission webhook 포트 허용.
+  # istio sidecar injector(15017)·istiod xDS(15012)가 없으면 Pod 생성 시 웹훅 timeout으로
+  # 모든 서비스 Pod가 FailedCreate 된다(EKS 기본 노드 SG는 이 포트를 안 열어줌).
+  node_security_group_additional_rules = {
+    istio_sidecar_injector_webhook = {
+      description                   = "Control plane to istio sidecar injector webhook"
+      protocol                      = "tcp"
+      from_port                     = 15017
+      to_port                       = 15017
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+    istiod_xds = {
+      description                   = "Control plane to istiod xDS/webhook"
+      protocol                      = "tcp"
+      from_port                     = 15012
+      to_port                       = 15012
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+  }
+
   eks_managed_node_group_defaults = {
     capacity_type = var.node_capacity_type
   }

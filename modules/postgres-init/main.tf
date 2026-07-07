@@ -44,13 +44,15 @@ resource "postgresql_schema" "extra" {
 }
 
 # 서비스 role은 공유 DB에 접속 가능하고, 자기 schema를 search_path 기본값으로 쓴다.
+# CREATE: 각 서비스 Flyway 마이그레이션 첫 줄이 'CREATE SCHEMA IF NOT EXISTS <svc>'라
+# DB 레벨 CREATE 권한이 필요하다(PG는 IF NOT EXISTS여도 CREATE 권한을 먼저 검사).
 resource "postgresql_grant" "service_connect" {
   for_each = toset(var.schema_names)
 
   role        = postgresql_role.service[each.key].name
   database    = var.database_name
   object_type = "database"
-  privileges  = ["CONNECT"]
+  privileges  = ["CONNECT", "CREATE"]
 }
 
 resource "postgresql_grant" "service_schema" {

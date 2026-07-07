@@ -6,6 +6,11 @@
 locals {
   jwt_enabled         = var.jwt_issuer != ""
   integration_enabled = var.mesh_nlb_listener_arn != ""
+
+  # OPTIONS는 라우트에서 제외한다. HTTP API는 cors_configuration이 있고 OPTIONS에
+  # 매칭되는 라우트가 없을 때만 프리플라이트를 자동(204+CORS 헤더) 처리한다.
+  # (ANY 라우트는 OPTIONS까지 잡아 BFF로 포워딩→Fastify 415가 됐음)
+  route_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 }
 
 resource "aws_apigatewayv2_api" "this" {
@@ -84,21 +89,21 @@ resource "aws_apigatewayv2_integration" "mesh" {
   } : {}
 }
 
-# /auth/* — 로그인 등 public (JWT 미적용)
+# /api/auth/* — 로그인 등 public (JWT 미적용). 메서드별 라우트(OPTIONS 제외).
 resource "aws_apigatewayv2_route" "auth" {
-  count = local.integration_enabled ? 1 : 0
+  for_each = local.integration_enabled ? toset(local.route_methods) : toset([])
 
   api_id    = aws_apigatewayv2_api.this.id
-  route_key = "ANY /auth/{proxy+}"
+  route_key = "${each.value} /api/auth/{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.mesh[0].id}"
 }
 
-# 그 외 전부 — JWT 보호 (issuer 설정 시)
+# 그 외 전부 — JWT 보호 (issuer 설정 시). 메서드별 라우트(OPTIONS 제외 → 프리플라이트 자동 처리).
 resource "aws_apigatewayv2_route" "default" {
-  count = local.integration_enabled ? 1 : 0
+  for_each = local.integration_enabled ? toset(local.route_methods) : toset([])
 
   api_id             = aws_apigatewayv2_api.this.id
-  route_key          = "ANY /{proxy+}"
+  route_key          = "${each.value} /{proxy+}"
   target             = "integrations/${aws_apigatewayv2_integration.mesh[0].id}"
   authorization_type = local.jwt_enabled ? "JWT" : "NONE"
   authorizer_id      = local.jwt_enabled ? aws_apigatewayv2_authorizer.jwt[0].id : null
