@@ -21,9 +21,16 @@ resource "aws_apigatewayv2_api" "this" {
   dynamic "cors_configuration" {
     for_each = length(var.cors_allow_origins) > 0 ? [1] : []
     content {
-      allow_origins     = var.cors_allow_origins
-      allow_methods     = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-      allow_headers     = ["authorization", "content-type", "x-account-id"]
+      allow_origins = var.cors_allow_origins
+      allow_methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+      allow_headers = [
+        "authorization",
+        "content-type",
+        "idempotency-key",
+        "x-account-id",
+        "x-account-role",
+        "x-idempotency-key",
+      ]
       allow_credentials = true
       max_age           = 3600
     }
@@ -86,7 +93,10 @@ resource "aws_apigatewayv2_integration" "mesh" {
   request_parameters = local.jwt_enabled ? {
     for h, claim in var.jwt_header_claims :
     "overwrite:header.${h}" => "$context.authorizer.claims.${claim}"
-  } : {}
+  } : {
+    "remove:header.X-Account-Id"   = ""
+    "remove:header.X-Account-Role" = ""
+  }
 }
 
 # /api/auth/* — 로그인 등 public (JWT 미적용). 메서드별 라우트(OPTIONS 제외).

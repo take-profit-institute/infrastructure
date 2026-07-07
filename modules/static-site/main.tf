@@ -32,6 +32,30 @@ resource "aws_cloudfront_origin_access_control" "site" {
   signing_protocol                  = "sigv4"
 }
 
+resource "aws_cloudfront_function" "spa_rewrite" {
+  name    = "${var.name}-spa-rewrite"
+  runtime = "cloudfront-js-2.0"
+  publish = true
+  code    = <<-JS
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+
+  if (uri.endsWith('/')) {
+    request.uri = uri + 'index.html';
+    return request;
+  }
+
+  var lastSegment = uri.split('/').pop();
+  if (lastSegment && lastSegment.indexOf('.') === -1) {
+    request.uri = uri + '/index.html';
+  }
+
+  return request;
+}
+JS
+}
+
 # ── ACM (us-east-1, DNS 검증) ──────────────────────────────────────
 resource "aws_acm_certificate" "site" {
   provider = aws.us_east_1
@@ -171,6 +195,11 @@ resource "aws_cloudfront_distribution" "site" {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
     cache_policy_id        = data.aws_cloudfront_cache_policy.optimized.id
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.spa_rewrite.arn
+    }
   }
 
   dynamic "custom_error_response" {

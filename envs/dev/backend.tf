@@ -2,7 +2,7 @@
 # 최초 init 시: terraform init  (필요하면 -reconfigure)
 terraform {
   backend "s3" {
-    bucket         = "candle-tfstate-348062907700"
+    bucket         = "candle-tfstate-633597729239"
     key            = "dev/terraform.tfstate"
     region         = "ap-northeast-2"
     dynamodb_table = "candle-terraform-locks"
