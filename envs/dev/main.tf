@@ -141,6 +141,9 @@ module "messaging" {
   number_of_broker_nodes = length(var.private_subnets)
   broker_volume_size     = var.msk_broker_volume_size
 
+  # Debezium/Strimzi 커넥트용 SASL/SCRAM 인증 (IAM과 공존). Strimzi가 IAM auth 미지원.
+  enable_scram = true
+
   tags = local.tags
 }
 

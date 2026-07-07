@@ -78,6 +78,8 @@ resource "aws_msk_cluster" "this" {
   client_authentication {
     sasl {
       iam = true
+      # SCRAM은 Strimzi/Debezium 커넥트 전용(Strimzi가 IAM auth 미지원). IAM과 공존.
+      scram = var.enable_scram
     }
   }
 
@@ -114,4 +116,70 @@ resource "aws_msk_cluster" "this" {
   }
 
   tags = var.tags
+}
+
+# ---------------------------------------------------------------------------
+# SASL/SCRAM 인증 (Debezium/Strimzi 전용) — enable_scram=true 일 때만 생성
+#
+# Strimzi KafkaConnect는 MSK IAM(custom auth)을 지원하지 않으므로 Debezium 커넥트만
+# SCRAM으로 붙는다. 앱/서비스는 계속 IAM(9098) 사용 — MSK는 IAM+SCRAM 공존 지원.
+# ⚠️ MSK SCRAM 시크릿 요건: (1) 이름 접두사 'AmazonMSK_', (2) 고객관리 KMS 키로 암호화,
+#    (3) kafka.amazonaws.com 이 GetSecretValue 가능한 리소스 정책.
+# ---------------------------------------------------------------------------
+resource "aws_kms_key" "msk_scram" {
+  count                   = var.enable_scram ? 1 : 0
+  description             = "CMK for ${var.name} MSK SCRAM secret"
+  deletion_window_in_days = 7
+  tags                    = var.tags
+}
+
+resource "aws_kms_alias" "msk_scram" {
+  count         = var.enable_scram ? 1 : 0
+  name          = "alias/${var.name}-msk-scram"
+  target_key_id = aws_kms_key.msk_scram[0].key_id
+}
+
+resource "random_password" "scram" {
+  count   = var.enable_scram ? 1 : 0
+  length  = 24
+  special = false # MSK SCRAM 비번은 영숫자 (특수문자로 인한 접속 이슈 회피)
+}
+
+resource "aws_secretsmanager_secret" "msk_scram" {
+  count      = var.enable_scram ? 1 : 0
+  name       = "AmazonMSK_${var.name}_debezium"
+  kms_key_id = aws_kms_key.msk_scram[0].arn
+  tags       = var.tags
+}
+
+resource "aws_secretsmanager_secret_version" "msk_scram" {
+  count     = var.enable_scram ? 1 : 0
+  secret_id = aws_secretsmanager_secret.msk_scram[0].id
+  secret_string = jsonencode({
+    username = var.scram_username
+    password = random_password.scram[0].result
+  })
+}
+
+resource "aws_secretsmanager_secret_policy" "msk_scram" {
+  count      = var.enable_scram ? 1 : 0
+  secret_arn = aws_secretsmanager_secret.msk_scram[0].arn
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "AWSKafkaResourcePolicy"
+      Effect    = "Allow"
+      Principal = { Service = "kafka.amazonaws.com" }
+      Action    = "secretsmanager:GetSecretValue"
+      Resource  = aws_secretsmanager_secret.msk_scram[0].arn
+    }]
+  })
+}
+
+resource "aws_msk_scram_secret_association" "this" {
+  count           = var.enable_scram ? 1 : 0
+  cluster_arn     = aws_msk_cluster.this.arn
+  secret_arn_list = [aws_secretsmanager_secret.msk_scram[0].arn]
+
+  depends_on = [aws_secretsmanager_secret_version.msk_scram]
 }

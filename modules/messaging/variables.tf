@@ -68,3 +68,16 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+# ── SASL/SCRAM (Debezium/Strimzi 전용) ─────────────────────────────
+variable "enable_scram" {
+  description = "MSK에 SASL/SCRAM 인증 추가 (Debezium/Strimzi용, IAM과 공존)"
+  type        = bool
+  default     = false
+}
+
+variable "scram_username" {
+  description = "Debezium SCRAM 사용자명"
+  type        = string
+  default     = "debezium"
+}
